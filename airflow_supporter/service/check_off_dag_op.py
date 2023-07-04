@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+
 from typing import TYPE_CHECKING
 
 from airflow.models import DagModel
 from airflow.utils.session import provide_session
+
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
