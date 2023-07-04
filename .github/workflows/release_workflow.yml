@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - release-*
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python - -y
+
+      - name: Update PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Build project for distribution
+        run: poetry build
+
+      - name: Check Version
+        id: check-version
+        run: |
+          [[ "$(poetry version --short)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo prerelease=true >> $GITHUB_OUTPUT
+
+#      - name: Bump version and push tag
+#        id: tag_version
+#        uses: mathieudutour/github-tag-action@v6.1
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#
+#      - name: Create a GitHub release
+#        uses: ncipollo/release-action@v1
+#        with:
+#          tag: ${{ steps.tag_version.outputs.new_tag }}
+#          name: Release ${{ steps.tag_version.outputs.new_tag }}
+#          body: ${{ steps.tag_version.outputs.changelog }}
+#      - name: Check pypi token
+#        run: |
+#          echo ${{ secrets.PYPI_TOKEN }}
+
+#      - name: Create Release
+#        uses: ncipollo/release-action@v1.12.0
+#        with:
+#          artifacts: "dist/*"
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          draft: false
+#          prerelease: steps.check-version.outputs.prerelease == 'true'
+
+      - name: Publish to PyPI
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: |
+          poetry config repositories.test-pypi https://test.pypi.org/legacy/
+          poetry config pypi-token.test-pypi $POETRY_PYPI_TOKEN_PYPI
+          poetry publish -r test-pypi
