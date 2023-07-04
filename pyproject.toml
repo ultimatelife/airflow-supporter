@@ -123,7 +123,6 @@ disable_error_code = [
 
 
 [tool.pytest.ini_options]
-addopts = "-n auto"
 testpaths = ["test"]
 
 [tool.coverage.run]
